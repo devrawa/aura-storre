@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA Store | Premium Lifestyle & Fashion</title>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- PeerJS SDK for Real-time Device Connectivity -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+  <style>
+    :root {
+      --bg-store: #0b0f19;
+      --card-store: #151c2c;
+      --accent-store: #6366f1;
+      --text-store: #f3f4f6;
+      --text-muted: #9ca3af;
+      
+      --bg-chat: #090a0f;
+      --accent-snap: #fffc00;
+      --bubble-self: #2563eb;
+      --bubble-peer: #1e293b;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-store);
+      color: var(--text-store);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       DISGUISE VIEW: E-COMMERCE STORE FRONT
+       ========================================================================== */
+    #store-view {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .store-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: rgba(11, 15, 25, 0.9);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .store-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .store-brand i { color: var(--accent-store); }
+
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 420px;
+      margin: 0 1rem;
+    }
+
+    .search-container input {
+      width: 100%;
+      padding: 0.65rem 1rem 0.65rem 2.5rem;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      color: #fff;
+      font-size: 0.875rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-container input:focus {
+      border-color: var(--accent-store);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .search-container i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .store-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      color: var(--text-store);
+      font-size: 1.2rem;
+    }
+
+    .hero-banner {
+      margin: 1.5rem;
+      padding: 3rem 2rem;
+      background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-banner h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      line-height: 1.2;
+    }
+
+    .hero-banner p {
+      color: #c7d2fe;
+      max-width: 480px;
+      font-size: 0.95rem;
+    }
+
+    .btn-shop {
+      align-self: flex-start;
+      padding: 0.75rem 1.75rem;
+      background: #fff;
+      color: #000;
+      font-weight: 600;
+      border-radius: 99px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-shop:hover { transform: translateY(-2px); }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.25rem;
+      padding: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--card-store);
+      border-radius: 16px;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .product-card:hover { transform: translateY(-4px); }
+
+    .product-img {
+      width: 100%;
+      height: 180px;
+      background: #0f172a;
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #334155;
+    }
+
+    .product-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .product-price { color: var(--accent-store); font-weight: 700; font-size: 0.9rem; }
+
+    /* ==========================================================================
+       SECRET CHAT ROOM VIEW
+       ========================================================================== */
+    #chat-view {
+      display: none;
+      height: 100vh;
+      background: var(--bg-chat);
+      flex-direction: column;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .chat-header {
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 0.75rem; }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-snap), #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .user-details h3 { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .status-badge { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+    .status-badge.online { background: var(--success); }
+
+    .peer-connection-bar {
+      background: #1e293b;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .peer-input-group { display: flex; gap: 0.5rem; }
+    .peer-input-group input {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.75rem;
+    }
+
+    .btn-connect {
+      background: var(--bubble-self);
+      color: #fff;
+      border: none;
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-icon:hover { background: rgba(255, 255, 255, 0.15); }
+    .btn-panic { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      scroll-behavior: smooth;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      position: relative;
+      word-break: break-word;
+      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .message-bubble.self {
+      align-self: flex-end;
+      background: var(--bubble-self);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-bubble.peer {
+      align-self: flex-start;
+      background: var(--bubble-peer);
+      color: #f1f5f9;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .message-meta {
+      font-size: 0.65rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.25rem;
+    }
+
+    .system-alert {
+      align-self: center;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 0.4rem 0.8rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Live Character Preview Bubble (Snapchat Style) */
+    .live-preview-container {
+      padding: 0.5rem 1rem;
+      min-height: 38px;
+    }
+
+    .live-preview-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px dashed rgba(255, 252, 0, 0.4);
+      padding: 0.4rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.825rem;
+      color: var(--accent-snap);
+      animation: pulse 1.5s infinite;
+    }
+
+    .chat-input-area {
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 1rem;
+      border-radius: 99px;
+      color: #fff;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .chat-input-area input:focus {
+      border-color: var(--accent-snap);
+    }
+
+    .btn-send {
+      background: var(--accent-snap);
+      color: #000;
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-send:active { transform: scale(0.9); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+    input { -webkit-user-select: text; user-select: text; }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       1. STORE VIEW (THE DISGUISE FRONTEND)
+       ========================================================================== -->
+  <div id="store-view">
+    <nav class="store-nav">
+      <div class="store-brand">
+        <i class="fa-solid fa-gem"></i> AURA
+      </div>
+      
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="store-search" placeholder="Search products, brands, promo codes..." oninput="checkSecretPasscode(this.value)">
+      </div>
+
+      <div class="store-actions">
+        <i class="fa-regular fa-heart"></i>
+        <i class="fa-solid fa-bag-shopping"></i>
+      </div>
+    </nav>
+
+    <div class="hero-banner">
+      <h1>Spring Fashion Collection 2026</h1>
+      <p>Discover minimal modern streetwear and exclusive accessory drops. Up to 40% off selected apparel.</p>
+      <button class="btn-shop">Explore Collection</button>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card">
+        <div class="product-img"><i class="fa-solid fa-shirt"></i></div>
+        <div class="product-title">Oversized Heavyweight Tee</div>
+        <div class="product-price">$45.00</div>
+      </div>
+      <div class="product-card">
+        <div class="product-img"><i class="fa-solid fa-glasses"></i></div>
+        <div class="product-title">Minimalist Wireframe Shades</div>
+        <div class="product-price">$89.00</div>
+      </div>
+      <div class="product-card">
+        <div class="product-img"><i class="fa-solid fa-shoe-prints"></i></div>
+        <div class="product-title">Urban Runner Low Sneakers</div>
+        <div class="product-price">$120.00</div>
+      </div>
+      <div class="product-card">
+        <div class="product-img"><i class="fa-solid fa-clock"></i></div>
+        <div class="product-title">Matte Chronograph Watch</div>
+        <div class="product-price">$210.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       2. SECRET CHAT VIEW (SNAPCHAT-STYLE INTERFACE)
+       ========================================================================== -->
+  <div id="chat-view">
+    <div class="chat-header">
+      <div class="user-info">
+        <div class="avatar" id="my-avatar">U</div>
+        <div class="user-details">
+          <h3 id="chat-title">Secret Room <span class="status-badge" id="status-indicator"></span></h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);" id="peer-status-text">Disconnected</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-sound" onclick="toggleAudio()" title="Toggle Sound Chime">
+          <i class="fa-solid fa-bell"></i>
+        </button>
+        <button class="btn-icon btn-panic" onclick="triggerPanicLock()" title="Instant Lock / Panic Button">
+          <i class="fa-solid fa-lock"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- P2P Peer Connection Setup -->
+    <div class="peer-connection-bar">
+      <div>
+        <span>Your ID: </span><strong id="my-peer-id" style="color: var(--accent-snap);">Generating...</strong>
+      </div>
+      <div class="peer-input-group">
+        <input type="text" id="target-peer-id" placeholder="Enter Peer ID...">
+        <button class="btn-connect" onclick="connectToPeer()">Connect</button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div class="chat-messages" id="chat-messages">
+      <div class="system-alert">
+        <i class="fa-solid fa-shield-halved"></i> End-to-end P2P Encrypted Session Active
+      </div>
+    </div>
+
+    <!-- Snapchat-Style Live Typing Character Preview -->
+    <div class="live-preview-container">
+      <div class="live-preview-bubble" id="live-preview-bubble" style="display: none;">
+        <i class="fa-solid fa-pen-nib"></i> <span id="live-typing-text"></span>
+      </div>
+    </div>
+
+    <!-- Chat Input Bar -->
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Send a message..." oninput="handleTyping(this.value)" onkeydown="if(event.key==='Enter') sendMessage()">
+      <button class="btn-send" onclick="sendMessage()">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+(() => {
+  'use strict';
+  const PASSCODE = '18771877';
+  const LOCK_MS = 120000;   // idle auto-lock
+  const PING_MS = 15000;    // keep-alive
+  const $ = (id) => document.getElementById(id);
+
+  const S = {
+    peer: null, myId: '',
+    conns: new Set(),        // every connection, incoming and outgoing
+    active: null,            // most recently opened connection
+    lastTarget: null, retries: 0, retryTimer: null,
+    locked: true, audio: true, audioCtx: null, lockTimer: null
+  };
+
+  /* ================= CONNECTION TRACKING ================= */
+  function openConn() {
+    if (S.active && S.active.open) return S.active;
+    for (const c of S.conns) if (c.open) { S.active = c; return c; }
+    return null;
+  }
+
+  // true only if the message was handed to an open connection
+  function send(obj) {
+    const c = openConn();
+    if (!c) return false;
+    try { c.send(obj); return true; }
+    catch (e) { console.error('[send]', e); return false; }
+  }
+
+  function setStatus() {
+    const c = openConn();
+    $('status-indicator').classList.toggle('online', !!c);
+    $('peer-status-text').innerText = c ? 'Connected: ' + c.peer : 'Disconnected';
+  }
+
+  // Used for BOTH outgoing and incoming connections
+  function track(c) {
+    S.conns.add(c);
+
+    c.on('open', () => {
+      S.active = c; S.lastTarget = c.peer; S.retries = 0;
+      setStatus();
+      systemAlert('Connected with ' + c.peer);
+    });
+
+    c.on('data', onData);   // every connection listens, whichever one is "active"
+
+    c.on('close', () => {
+      S.conns.delete(c);
+      if (S.active === c) S.active = null;
+      setStatus();
+      if (!openConn()) { systemAlert('Peer disconnected'); scheduleReconnect(); }
+    });
+
+    c.on('error', (e) => console.error('[conn]', e));
+  }
+
+  function connectTo(id) {
+    const p = S.peer;
+    if (!p || !p.open || !id || id === S.myId) return;
+    track(p.connect(id, { reliable: true, serialization: 'json' }));
+  }
+
+  function scheduleReconnect() {
+    if (S.retryTimer || !S.lastTarget || S.retries >= 6) return;
+    S.retryTimer = setTimeout(() => {
+      S.retryTimer = null; S.retries++;
+      if (!openConn()) connectTo(S.lastTarget);
+    }, Math.min(2000 * (S.retries + 1), 10000));
+  }
+
+  // Each device keeps the same ID across reloads (stored in localStorage)
+  const ID_KEY = 'aura_peer_id';
+  const newId = () => 'AURA-' + (1000 + Math.floor(Math.random() * 9000));
+  function loadSavedId() { try { return localStorage.getItem(ID_KEY); } catch (e) { return null; } }
+  function saveId(id) { try { localStorage.setItem(ID_KEY, id); } catch (e) {} }
+
+  // forceNew = use a temporary random ID (and don't overwrite the saved one)
+  // tries    = how many times the saved ID was refused as "taken"
+  function initPeer(forceNew = false, tries = 0) {
+    if (S.peer) return;
+    const saved = forceNew ? null : loadSavedId();
+    const p = new Peer(saved || newId());
+    S.peer = p;
+
+    p.on('open', (id) => {
+      S.myId = id;
+      $('my-peer-id').innerText = id;
+      $('my-avatar').innerText = id.slice(-2);
+      if (!forceNew) saveId(id);
+    });
+    p.on('connection', track);
+    p.on('disconnected', () => { if (!p.destroyed) p.reconnect(); });
+    p.on('error', (err) => {
+      console.error('[peer]', err.type, err);
+      if (err.type === 'unavailable-id') {
+        p.destroy(); S.peer = null;
+        if (saved && tries < 3) {
+          // After a reload the server may still hold the old session for a moment: retry the same ID
+          setTimeout(() => initPeer(false, tries + 1), 1500);
+        } else if (saved) {
+          // Still taken (e.g. a second tab in this browser already uses it): use a temporary ID
+          systemAlert('Saved ID is in use (another tab?). Using a temporary ID.');
+          initPeer(true);
+        } else {
+          initPeer(false);   // random ID collided: pick another
+        }
+        return;
+      }
+      if (err.type === 'peer-unavailable') { systemAlert('Peer ID not found. Check the ID; it changes whenever the other page is reloaded.'); return; }
+      systemAlert('Connection error: ' + err.type);
+    });
+  }
+
+  // Phones suspend tabs in the background: when we come back, revive everything
+  function resume() {
+    const p = S.peer;
+    if (p && !p.destroyed && p.disconnected) p.reconnect();
+    if (!openConn()) { S.retries = 0; scheduleReconnect(); }
+    setStatus();
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
+  window.addEventListener('online', resume);
+  setInterval(() => send({ type: 'PING' }), PING_MS);
+
+  /* ================= DOM ================= */
+  function scrollDown() { const c = $('chat-messages'); c.scrollTop = c.scrollHeight; }
+
+  function systemAlert(text) {
+    const d = document.createElement('div');
+    d.className = 'system-alert';
+    const i = document.createElement('i');
+    i.className = 'fa-solid fa-triangle-exclamation';
+    d.append(i, ' ' + text);
+    $('chat-messages').appendChild(d);
+    scrollDown();
+  }
+
+  function addMessage(m, who) {
+    const b = document.createElement('div');
+    b.className = 'message-bubble ' + who;
+    const t = document.createElement('div');
+    t.textContent = String(m.text == null ? '' : m.text);   // textContent = no XSS
+    const meta = document.createElement('div');
+    meta.className = 'message-meta';
+    const time = document.createElement('span');
+    time.textContent = m.time || '';
+    meta.appendChild(time);
+    if (who === 'self') {
+      const i = document.createElement('i');
+      i.className = 'fa-solid fa-check';
+      i.dataset.msg = m.id;
+      meta.appendChild(i);
+    }
+    b.append(t, meta);
+    $('chat-messages').appendChild(b);
+    scrollDown();
+  }
+
+  function markRead(id) {
+    const i = document.querySelector('i[data-msg="' + CSS.escape(String(id)) + '"]');
+    if (i) { i.className = 'fa-solid fa-check-double'; i.style.color = '#38bdf8'; }
+  }
+
+  /* ================= MESSAGING ================= */
+  function onData(data) {
+    try {
+      if (typeof data === 'string') data = JSON.parse(data);
+      if (!data || typeof data !== 'object') return;
+
+      switch (data.type) {
+        case 'CHAT_MESSAGE':
+          addMessage(data, 'peer');                         // 1. render first
+          send({ type: 'READ_RECEIPT', msgId: data.id });   // 2. receipt
+          chime(); fakeNotification();                      // 3. extras (never throw)
+          break;
+        case 'LIVE_TYPING': {
+          const txt = String(data.text || '');
+          $('live-preview-bubble').style.display = txt ? 'inline-flex' : 'none';
+          $('live-typing-text').innerText = txt;
+          break;
+        }
+        case 'READ_RECEIPT': markRead(data.msgId); break;
+        case 'SCREENSHOT_ALERT': systemAlert('Peer took a screenshot!'); break;
+      }
+    } catch (e) { console.error('[data]', e); }
+  }
+
+  function sendMessage() {
+    const input = $('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    const msg = {
+      type: 'CHAT_MESSAGE',
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    // Only show the bubble if it really went out
+    if (!send(msg)) { systemAlert('Not sent: no open connection to a peer.'); return; }
+    addMessage(msg, 'self');
+    input.value = '';
+    send({ type: 'LIVE_TYPING', text: '' });
+  }
+
+  function handleTyping(v) { send({ type: 'LIVE_TYPING', text: v }); }
+
+  // IDs are always generated as AURA-1234, so be forgiving about case, spaces and "1234"
+  function normalizeId(raw) {
+    let id = String(raw).trim().toUpperCase().replace(/\s+/g, '');
+    if (/^\d{4}$/.test(id)) id = 'AURA-' + id;
+    return id;
+  }
+
+  function connectToPeer() {
+    const id = normalizeId($('target-peer-id').value);
+    if (!id) return;
+    if (!S.peer || !S.peer.open) { systemAlert('Still reaching the server, try again in a moment'); return; }
+    if (id === S.myId.toUpperCase()) {
+      systemAlert("You cannot connect to yourself. Enter the other person's ID.");
+      $('target-peer-id').focus();
+      return;
+    }
+    S.retries = 0;
+    connectTo(id);
+  }
+
+  /* ================= SOUND & NOTIFICATIONS ================= */
+  function chime() {
+    if (!S.audio || !S.audioCtx) return;
+    try {
+      const ctx = S.audioCtx;
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator(), gain = ctx.createGain(), t = ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, t);
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(t + 0.15);
+    } catch (e) {}
+  }
+
+  function fakeNotification() {
+    try {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      if (!(document.hidden || S.locked)) return;
+      const promos = [
+        'AURA Store: Flash Sale Alert! Up to 50% Off.',
+        'AURA Store: Items in your wishlist are back in stock!',
+        'AURA Store: Exclusive Promo Code inside.'
+      ];
+      const n = new Notification('AURA Store', {
+        body: promos[Math.floor(Math.random() * promos.length)],
+        icon: 'https://cdn-icons-png.flaticon.com/512/3081/3081559.png'
+      });
+      n.onclick = () => { window.focus(); lockView(); n.close(); };
+    } catch (e) { /* some mobile browsers forbid new Notification(); ignore */ }
+  }
+
+  function toggleAudio() {
+    S.audio = !S.audio;
+    $('btn-sound').style.opacity = S.audio ? '1' : '0.4';
+  }
+
+  /* ================= LOCK / UNLOCK ================= */
+  // Locking only hides the UI. The connection stays alive so messages keep arriving.
+  function lockView() {
+    S.locked = true;
+    clearTimeout(S.lockTimer);
+    $('chat-view').style.display = 'none';
+    $('store-view').style.display = 'block';
+  }
+
+  function resetLockTimer() {
+    clearTimeout(S.lockTimer);
+    if (!S.locked) S.lockTimer = setTimeout(lockView, LOCK_MS);
+  }
+
+  function checkSecretPasscode(v) {
+    if (v.trim() !== PASSCODE) return;
+    $('store-search').value = '';
+    S.locked = false;
+    $('store-view').style.display = 'none';
+    $('chat-view').style.display = 'flex';
+    try { S.audioCtx = S.audioCtx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+    initPeer();
+    resetLockTimer();
+    scrollDown();
+  }
+
+  ['click', 'touchstart', 'mousemove', 'keydown'].forEach((e) => window.addEventListener(e, resetLockTimer, { passive: true }));
+
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'PrintScreen' && !S.locked) {
+      systemAlert('Screenshot activity detected on your device!');
+      send({ type: 'SCREENSHOT_ALERT' });
+    }
+  });
+
+  // Hooks used by the inline handlers in the HTML
+  Object.assign(window, { checkSecretPasscode, toggleAudio, triggerPanicLock: lockView, connectToPeer, handleTyping, sendMessage });
+})();
+</script>
+</body>
+</html>
